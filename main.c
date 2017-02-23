@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 #include "usbdrv/usbdrv.h"
 
@@ -7,6 +8,10 @@
 #define CMD_ECHO     0
 #define CMD_PWM_READ 1
 #define CMD_PWM_SET  2
+#define CMD_PWM_EEPROM_READ 3
+#define CMD_PWM_EEPROM_SET  4
+
+uint16_t EEMEM pwm_eeprom[2] = { 127, 127 };
 
 #define ledOn()  PORTD |=  (1<<PD5)
 #define ledOff() PORTD &= ~(1<<PD5)
@@ -66,8 +71,8 @@ void pwm_init(void) {
 	TCCR1A |= (1<<COM1B1) | (1<<COM1B0);
 	TCCR1B |= (0<<CS12) | (0<<CS11) | (1<<CS10); // No prescaling
 
-	OCR1A = 127;
-	OCR1B = 127;
+	OCR1A = eeprom_read_word(&pwm_eeprom[0]);
+	OCR1B = eeprom_read_word(&pwm_eeprom[1]);
 }
 
 //---------------------------------------------------------------------------
@@ -101,6 +106,16 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 	else if (rq->bRequest == CMD_PWM_SET) {
 		OCR1A = rq->wValue.word;
 		OCR1B = rq->wIndex.word;
+	}
+	else if (rq->bRequest == CMD_PWM_EEPROM_READ) {
+		uint16_t *eepromReply = (uint16_t*)replyBuf;
+		eepromReply[0] = eeprom_read_word(&pwm_eeprom[0]);
+		eepromReply[1] = eeprom_read_word(&pwm_eeprom[1]);
+		len = 4;
+	}
+	else if (rq->bRequest == CMD_PWM_EEPROM_SET) {
+		eeprom_write_word(&pwm_eeprom[0], rq->wValue.word);
+		eeprom_write_word(&pwm_eeprom[1], rq->wIndex.word);
 	}
 	return len;
 }

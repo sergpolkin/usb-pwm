@@ -70,9 +70,9 @@ text: compile
 
 # Rules for building the .eeprom rom images
 eeprom: compile
-	@#$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $(PROG).elf $(PROG)_eeprom.hex
+	@$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $(PROG).elf $(PROG)_eeprom.hex
 	@#$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O srec $(PROG).elf $(PROG)_eeprom.srec
-	@#$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O binary $(PROG).elf $(PROG)_eeprom.bin
+	@$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O binary $(PROG).elf $(PROG)_eeprom.bin
 
 clean:
 	rm -f *~ *.elf *.rom *.bin *.eep *.o *.lst *.map *.srec *.hex
@@ -80,7 +80,9 @@ clean:
 	rm -f $(patsubst %.o,%.d,$(OBJS))
 flash: text
 	$(AVRDUDE) $(AVRDUDE_FLAGS) -U flash:w:$(PROG).hex:i
+flash_eeprom: eeprom
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U eeprom:w:$(PROG)_eeprom.hex:i
 
-.PHONY: clean compile dump text eeprom flash
+.PHONY: clean compile dump text eeprom flash flash_eeprom
 
 -include $(OBJS:.o=.d)
