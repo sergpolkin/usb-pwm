@@ -10,6 +10,8 @@
 #define CMD_PWM_SET  2
 #define CMD_PWM_EEPROM_READ 3
 #define CMD_PWM_EEPROM_SET  4
+#define CMD_IO8_READ  5
+#define CMD_IO8_WRITE 6
 
 uint16_t EEMEM pwm_eeprom[2] = { 127, 127 };
 
@@ -116,6 +118,13 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 	else if (rq->bRequest == CMD_PWM_EEPROM_SET) {
 		eeprom_write_word(&pwm_eeprom[0], rq->wValue.word);
 		eeprom_write_word(&pwm_eeprom[1], rq->wIndex.word);
+	}
+	else if (rq->bRequest == CMD_IO8_READ) {
+		replyBuf[0] = _SFR_IO8(rq->wValue.bytes[0]);
+		len = 1;
+	}
+	else if (rq->bRequest == CMD_IO8_WRITE) {
+		_SFR_IO8(rq->wValue.bytes[0]) = rq->wValue.bytes[1];
 	}
 	return len;
 }

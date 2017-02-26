@@ -18,6 +18,7 @@ MCU = attiny2313
 AVRDMCU = t2313
 AVRDUDE_FLAGS = -p $(AVRDMCU)
 AVRDUDE_FLAGS+= -c usbasp
+# AVRDUDE_FLAGS+= -D
 
 # Some more settings
 # Clock Frequency of the AVR. Needed for various calculations.
